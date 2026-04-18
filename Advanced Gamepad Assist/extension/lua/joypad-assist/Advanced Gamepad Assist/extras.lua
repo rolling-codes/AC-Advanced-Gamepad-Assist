@@ -1,4 +1,5 @@
 local lib = require "AGALib"
+local TrafficAssist = require "TrafficAssist"
 
 local M = {}
 
@@ -382,6 +383,12 @@ M.update = function(vData, uiData, absInitialSteering, dt)
             end
 
             vData.inputData.clutch = math.min(vData.inputData.clutch, autoClutchVal)
+
+            -- Gap-aware pre-braking from TrafficAssist (gentle decel floor, can't override driver)
+            local gapBrake = TrafficAssist.getGapBrakeRequest()
+            if gapBrake > 0.001 then
+                vData.inputData.brake = math.max(vData.inputData.brake, gapBrake)
+            end
         end
     end
 
