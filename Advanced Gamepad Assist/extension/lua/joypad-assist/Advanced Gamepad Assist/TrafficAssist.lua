@@ -1,10 +1,11 @@
-local lib        = require "AGALib"
+local lib        = require "AGALib"  -- available for lib utilities; not used yet
 local GapScanner = require "GapScanner"
 
 local M = {}
 
 -- Minimum lateral clearance (metres) to each side before a cut is attempted.
-local MIN_CLEARANCE = 0.4
+local MIN_CLEARANCE      = 0.4
+local MAX_BRAKE_REQUEST  = 0.4  -- Maximum pre-braking decel fraction applied to brake channel
 
 -- Dynamic limit values per threat level (normalised 0-1, maps to steering limit).
 local LIMIT_BY_THREAT = {
@@ -59,16 +60,16 @@ function M.update(vData, uiData, carWidth, dt)
 
     -- Gap-aware pre-braking: if the best gap needs lower entry speed, request gentle decel
     gapBrakeRequest = 0.0
-    if bestGap and bestGap.ttc < 3.0 and player.speedKmh > 40 then
+    if bestGap and bestGap.ttc < 3.0 and vData.localHVelLen > (40 / 3.6) then
         local requiredSpeedFraction = math.clamp(bestGap.ttc / 3.0, 0, 1)
-        gapBrakeRequest = (1.0 - requiredSpeedFraction) * 0.4
+        gapBrakeRequest = (1.0 - requiredSpeedFraction) * MAX_BRAKE_REQUEST
     end
 
     -- Blind spot rumble warning on CRITICAL (left motor = left blind spot, right = right)
     if threat == GapScanner.ThreatLevel.CRITICAL then
         local lRumble = (blindSpot.left  < 4.0) and 0.6 or 0.0
         local rRumble = (blindSpot.right < 4.0) and 0.6 or 0.0
-        if lRumble > 0 or rRumble > 0 then
+        if (lRumble > 0 or rRumble > 0) and vData.inputData.rumbleEffects ~= 0.0 then
             ac.setControllerRumble(lRumble, rRumble, dt * 2.0)
         end
     end
