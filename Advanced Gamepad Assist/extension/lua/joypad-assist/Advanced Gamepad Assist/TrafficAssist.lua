@@ -55,8 +55,11 @@ function M.update(vData, uiData, carWidth, dt)
     prevThreat = threat
 
     -- Map threat to dynamic limit (stored * 10 for legacy reasons, same as AGA convention)
-    local targetLimit = LIMIT_BY_THREAT[threat] * 10.0
-    uiData.maxDynamicLimitReduction = math.lerp(uiData.maxDynamicLimitReduction, targetLimit, math.clamp(dt / 0.15, 0, 1))
+    -- Only override the user's filter setting when traffic is actively detected
+    if bestGap or threat ~= GapScanner.ThreatLevel.CLEAR then
+        local targetLimit = LIMIT_BY_THREAT[threat] * 10.0
+        uiData.maxDynamicLimitReduction = math.lerp(uiData.maxDynamicLimitReduction, targetLimit, math.clamp(dt / 0.15, 0, 1))
+    end
 
     -- Gap-aware pre-braking: if the best gap needs lower entry speed, request gentle decel
     gapBrakeRequest = 0.0

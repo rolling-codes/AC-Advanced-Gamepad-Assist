@@ -881,6 +881,8 @@ function script.update(dt)
 end
 
 function script.reset()
+    -- TODO: reset module-level smoothers (steeringSmoother, limitSmoother, etc.) to avoid
+    -- residual state after teleport/session reset. Pre-existing gap; not introduced here.
     TrafficAssist.reset()
 end
 
