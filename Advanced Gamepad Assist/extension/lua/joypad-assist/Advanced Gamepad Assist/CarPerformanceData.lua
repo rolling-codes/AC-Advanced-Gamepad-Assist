@@ -90,7 +90,7 @@ function M:new(vehicle)
     local downshiftClutchFadeT = (downshiftPoint1 ~= 0 and downshiftPoint2 ~= 0) and (downshiftPoint2 - downshiftPoint1) or 0
 
     local cPhys          = ac.getCarPhysics(vehicle.index)
-    local tiresINI       = ac.INIConfig.carData(car.index, "tyres.ini")
+    local tiresINI       = ac.INIConfig.carData(vehicle.index, "tyres.ini")
 
     self.__index = self
 
