@@ -434,4 +434,13 @@ function M.measureUpdateRate(key, value, dt)
     return _valueHistory[key].lastRate
 end
 
+-- Returns a speed-scaled steering rate multiplier.
+-- Full rate below 60 km/h, decaying to ~35% at 200 km/h.
+-- baseRate should be the uiData.steeringRate value (0-1 range).
+-- dt-normalization is handled by the SmoothTowards caller, not here.
+function M.adaptiveSteeringRate(baseRate, speedKmh)
+    local t = math.clamp((speedKmh - 60) / 140, 0, 1)
+    return baseRate * (1.0 - t * 0.65)
+end
+
 return M
