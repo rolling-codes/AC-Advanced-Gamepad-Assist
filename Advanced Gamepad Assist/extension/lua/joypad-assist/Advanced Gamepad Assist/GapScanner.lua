@@ -2,6 +2,9 @@ local lib = require "AGALib"
 
 local M = {}
 
+local _predLatScratch = vec3()
+local _blindSpot = { left = math.huge, right = math.huge }
+
 -- Threat levels returned by classifyThreat()
 M.ThreatLevel = {
     CLEAR    = 0,
@@ -18,10 +21,10 @@ end
 
 -- Scores a gap for selection. Higher is better.
 -- carWidth is the player car's approximate half-width in metres (use 1.0 as default).
--- gapWidth is the lateral clearance available (metres).
-local function scoreGap(forwardDist, closingRate, gapWidth, carWidth)
-    local ttc       = timeToContact(forwardDist, closingRate)
-    local clearance = gapWidth - carWidth
+-- gapWidth is the raw lateral distance between car centres (metres).
+-- ttc and closingRate are pre-computed by the caller.
+local function scoreGap(ttc, closingRate, gapWidth, carWidth)
+    local clearance = gapWidth - 2 * carWidth
     return clearance + (ttc * 0.3) - (math.max(0, closingRate) * 0.5)
 end
 
@@ -37,13 +40,16 @@ end
 -- Returns the predicted lateral offset (metres, in player-car's local frame) of `other`
 -- after `lookaheadTime` seconds. Positive = right of player.
 function M.predictedLateral(other, playerCar, lookaheadTime)
-    local futurePos = other.transform.position + other.velocity * lookaheadTime
-    return (futurePos - playerCar.transform.position):dot(playerCar.transform.side)
+    other.velocity:copyTo(_predLatScratch)
+    _predLatScratch:scale(lookaheadTime)
+    _predLatScratch:add(other.transform.position)
+    _predLatScratch:sub(playerCar.transform.position)
+    return _predLatScratch:dot(playerCar.transform.side)
 end
 
 -- Main scan function. Returns:
 --   gaps      table, sorted nearest-first, each entry:
---             { forward, lateral, closing, carIndex, ttc, score, threat }
+--             { forward, lateral, predLat, closing, carIndex, ttc, score, threat }
 --   bestGap   the highest-scoring entry, or nil if no gaps in range
 --   blindSpot { left, right } distance to nearest blind-zone car (math.huge = clear)
 --             Requires CSP 0.2.11+; falls back to { left=math.huge, right=math.huge }
@@ -63,13 +69,13 @@ function M.scan(playerCar, scanRange, carWidth)
             local relPos   = other.transform.position - playerCar.transform.position
             local forward  = relPos:dot(playerCar.transform.look)
             local lateral  = relPos:dot(playerCar.transform.side)
-            local closing  = other.localVelocity.z - playerCar.localVelocity.z
+            local closing  = playerCar.localVelocity.z - other.velocity:dot(playerCar.transform.look)
 
             if forward > 0 and forward < scanRange then
                 local ttc      = timeToContact(forward, closing)
                 local predLat  = M.predictedLateral(other, playerCar, math.min(ttc, 4.0))
-                local gapWidth = math.abs(lateral) - carWidth
-                local score    = scoreGap(forward, closing, gapWidth, carWidth)
+                local gapWidth = math.abs(lateral)
+                local score    = scoreGap(ttc, closing, gapWidth, carWidth)
                 local threat   = M.classifyThreat(forward, closing)
 
                 table.insert(gaps, {
@@ -97,7 +103,9 @@ function M.scan(playerCar, scanRange, carWidth)
     end
 
     -- Blind spot query (CSP 0.2.11+)
-    local blindSpot = { left = math.huge, right = math.huge }
+    _blindSpot.left  = math.huge
+    _blindSpot.right = math.huge
+    local blindSpot  = _blindSpot
     if type(ac.getCarBlindSpot) == "function" then
         local bs = ac.getCarBlindSpot()
         if bs then
