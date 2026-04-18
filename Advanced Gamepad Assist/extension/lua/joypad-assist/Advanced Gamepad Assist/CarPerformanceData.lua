@@ -290,8 +290,8 @@ function M:getInitialTargetSlipEstimate(vData)
     local dGainPressureMult0 = ((self.vehicle.wheels[0].tyrePressure < pressureIdeal) and 1.5 or 1.0)
     local dGainPressureMult1 = ((self.vehicle.wheels[1].tyrePressure < pressureIdeal) and 1.5 or 1.0)
 
-    local pressureFlexGain0 = pressureDiff0 * pressureFlexGainMult - math.abs(pressureDiff0 * dGainPressureMult0) * pressureDGain * 1.7 - 0.005 * math.abs(car.wheels[0].tyreCoreTemperature - car.wheels[0].tyreOptimumTemperature)
-    local pressureFlexGain1 = pressureDiff1 * pressureFlexGainMult - math.abs(pressureDiff1 * dGainPressureMult1) * pressureDGain * 1.7 - 0.005 * math.abs(car.wheels[1].tyreCoreTemperature - car.wheels[1].tyreOptimumTemperature)
+    local pressureFlexGain0 = pressureDiff0 * pressureFlexGainMult - math.abs(pressureDiff0 * dGainPressureMult0) * pressureDGain * 1.7 - 0.005 * math.abs(self.vehicle.wheels[0].tyreCoreTemperature - self.vehicle.wheels[0].tyreOptimumTemperature)
+    local pressureFlexGain1 = pressureDiff1 * pressureFlexGainMult - math.abs(pressureDiff1 * dGainPressureMult1) * pressureDGain * 1.7 - 0.005 * math.abs(self.vehicle.wheels[1].tyreCoreTemperature - self.vehicle.wheels[1].tyreOptimumTemperature)
 
     local loadMult = 1.0 / (2.0 * fz0) * (5.5 * (flexGain - 0.03))
 
