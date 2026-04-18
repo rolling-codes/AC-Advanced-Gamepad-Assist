@@ -10,6 +10,7 @@ if car.isAIControlled then return end
 local lib                = require "AGALib"
 local extras             = require "extras"
 local CarPerformanceData = require "CarPerformanceData"
+local TrafficAssist      = require "TrafficAssist"
 
 -- CONFIG =====================================================================================
 
@@ -818,9 +819,12 @@ function script.update(dt)
 
     if uiData.assistEnabled then
         local steeringRateMult                    = calcSteeringRateMult(vData.localHVelLen, vData.steeringLockDeg)
+        steeringRateMult = lib.adaptiveSteeringRate(steeringRateMult, vData.localHVelLen * 3.6)
         local initialSteering, absInitialSteering = processInitialInput(vData, uiData.keyboardMode, steeringRateMult, extras, dt)
 
         vData.perfData:updateTargetFrontSlipAngle(vData, initialSteering, dt)
+
+        TrafficAssist.update(vData, uiData, 1.0, dt)
 
         assistFadeIn            = math.lerpInvSat(vData.fAxleHVelLen, 2.0 * vData.wheelbaseFactor, 6.0 * vData.wheelbaseFactor)
         local processedSteering = calcCorrectedSteering(vData, vData.perfData:getTargetFrontSlipAngle(), initialSteering, absInitialSteering, assistFadeIn, dt)
@@ -874,6 +878,10 @@ function script.update(dt)
     -- ac.debug("Z) W1 MZ", vData.vehicle.wheels[1].mz, -200.0, 200.0)
     -- ac.debug("Z) W1 FX", vData.vehicle.wheels[1].fy, -10000.0, 10000.0)
     -- ac.debug("Z) W1 FY", vData.vehicle.wheels[1].fx, -10000.0, 10000.0)
+end
+
+function script.reset()
+    TrafficAssist.reset()
 end
 
 ac.onControlSettingsChanged(function ()
