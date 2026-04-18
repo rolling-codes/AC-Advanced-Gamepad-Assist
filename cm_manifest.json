@@ -6,11 +6,11 @@
   "author": "adam10603 / rolling-codes",
   "installedFiles": [
     {
-      "from": "Advanced Gamepad Assist/apps/",
+      "from": "apps/",
       "to": "apps/"
     },
     {
-      "from": "Advanced Gamepad Assist/extension/",
+      "from": "extension/",
       "to": "extension/"
     }
   ]

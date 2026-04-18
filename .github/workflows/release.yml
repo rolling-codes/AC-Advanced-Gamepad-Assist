@@ -18,15 +18,14 @@ jobs:
         run: |
           TAG=${GITHUB_REF_NAME}
           ZIPNAME="Advanced.Gamepad.Assist.Traffic.Build.${TAG}.zip"
-          zip -r "$ZIPNAME" \
-            "Advanced Gamepad Assist/apps/" \
-            "Advanced Gamepad Assist/extension/" \
-            cm_manifest.json \
-            INSTALL-TRAFFIC-BUILD.md
-          echo "ZIPNAME=$ZIPNAME" >> "$GITHUB_ENV"
-
+          # Put apps/ and extension/ at ZIP root so CM auto-detects the structure.
+          # Then add manifest and readme at root alongside them.
+          pushd "Advanced Gamepad Assist"
+          zip -r "../$ZIPNAME" apps/ extension/
+          popd
+          zip "$ZIPNAME" cm_manifest.json INSTALL-TRAFFIC-BUILD.md
       - name: Attach ZIP to release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ZIPNAME }}
+          files: Advanced.Gamepad.Assist.Traffic.Build.*.zip
           fail_on_unmatched_files: true
