@@ -1,0 +1,32 @@
+name: Build and release traffic ZIP
+
+on:
+  push:
+    tags:
+      - 'v*-traffic'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build installable ZIP
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          ZIPNAME="Advanced.Gamepad.Assist.Traffic.Build.${TAG}.zip"
+          zip -r "$ZIPNAME" \
+            "Advanced Gamepad Assist/apps/" \
+            "Advanced Gamepad Assist/extension/" \
+            cm_manifest.json \
+            INSTALL-TRAFFIC-BUILD.md
+          echo "ZIPNAME=$ZIPNAME" >> "$GITHUB_ENV"
+
+      - name: Attach ZIP to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIPNAME }}
+          fail_on_unmatched_files: true

@@ -1,0 +1,17 @@
+{
+  "id": "advanced-gamepad-assist-traffic",
+  "version": "1.5.5-traffic",
+  "name": "Advanced Gamepad Assist — Traffic Build",
+  "description": "Traffic-threading build of AGA v1.5.5. Adds live gap scanning, dynamic steering limits, gentle pre-braking, and blind-spot rumble on top of the standard steering assist.",
+  "author": "adam10603 / rolling-codes",
+  "installedFiles": [
+    {
+      "from": "Advanced Gamepad Assist/apps/",
+      "to": "apps/"
+    },
+    {
+      "from": "Advanced Gamepad Assist/extension/",
+      "to": "extension/"
+    }
+  ]
+}
