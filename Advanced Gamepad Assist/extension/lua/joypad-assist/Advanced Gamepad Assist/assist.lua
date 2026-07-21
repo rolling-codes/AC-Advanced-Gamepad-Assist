@@ -823,9 +823,15 @@ function script.update(dt)
         vData.perfData:updateTargetFrontSlipAngle(vData, initialSteering, dt)
 
         assistFadeIn            = math.lerpInvSat(vData.fAxleHVelLen, 2.0 * vData.wheelbaseFactor, 6.0 * vData.wheelbaseFactor)
-        local processedSteering = calcCorrectedSteering(vData, vData.perfData:getTargetFrontSlipAngle(), initialSteering, absInitialSteering, assistFadeIn, dt)
 
-        desiredSteering         = math.lerp(initialSteering, processedSteering, assistFadeIn)
+        -- When front wheels are airborne, maintain current steering to prevent wheels from straightening mid-jump
+        if vData.frontGrounded > 0.1 then
+            local processedSteering = calcCorrectedSteering(vData, vData.perfData:getTargetFrontSlipAngle(), initialSteering, absInitialSteering, assistFadeIn, dt)
+            desiredSteering         = math.lerp(initialSteering, processedSteering, assistFadeIn)
+        else
+            desiredSteering = initialSteering
+        end
+
         vData.inputData.steer   = sanitizeSteeringInput(normalizedSteeringToInput(desiredSteering, vData.steeringCurveExponent)) -- Final steering input sent to the car
 
         extras.update(vData, uiData, absInitialSteering, dt) -- Updating extra functionality like auto clutch etc.
